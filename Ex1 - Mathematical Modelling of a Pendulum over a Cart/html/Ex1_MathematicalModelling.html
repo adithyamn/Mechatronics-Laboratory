@@ -1,0 +1,237 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Mechatronics Lab - Exercise 1 : Mathematical Modelling of a Pendulum over a Cart</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-08-22"><meta name="DC.source" content="Ex1_MathematicalModelling.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Mechatronics Lab - Exercise 1 : Mathematical Modelling of a Pendulum over a Cart</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Creating the Modelling Parameters</a></li><li><a href="#2">Task 1: Deriving the Transfer Function and State Space model and representing in MATLAB</a></li><li><a href="#3">Task 1.1: Transfer Functions Model</a></li><li><a href="#4">Task 1.2: State Space Model</a></li><li><a href="#5">Task 2: Open Loop Impulse Response and Step Response of the System</a></li><li><a href="#6">Task 3: PID Controller Design</a></li></ul></div><h2 id="1">Creating the Modelling Parameters</h2><pre class="codeinput">M = 0.5; <span class="comment">%Mass of the Cart</span>
+m = 0.2; <span class="comment">%Mass o fthe Pendulum</span>
+b = 0.1; <span class="comment">%Damping Coef</span>
+g = 9.8; <span class="comment">%Gravity</span>
+I = 0.006; <span class="comment">%Inertia</span>
+l = 0.3; <span class="comment">%Length of Pendulum</span>
+disp(<span class="string">"Created the Modelling Parameters"</span>)
+</pre><h2 id="2">Task 1: Deriving the Transfer Function and State Space model and representing in MATLAB</h2><h2 id="3">Task 1.1: Transfer Functions Model</h2><pre class="codeinput">s = tf(<span class="string">'s'</span>); <span class="comment">%Creating the 's' variable required in a transfer function</span>
+q = (M+m)*(I+m*l^2)-(m*l)^2; <span class="comment">%Creating a 'q' variable for easy calculations</span>
+
+<span class="comment">%Delcaring the Transfer Functions of the Inverted Pendulum System</span>
+
+<span class="comment">%Transfer Function of the Cart</span>
+P_cart = (((I+m*l^2)/q)*s^2-(m*g*l/q))/(s^4+(b*(I+m*l^2))*s^3/q-((M+m)*m*g*l)*s^2/q-b*m*q*l*s/q);
+
+<span class="comment">%Transfer function of the Pendulum</span>
+P_pend = (m*l*s/q)/(s^3 + (b*(I+m*l^2))*s^2/q -((M+m)*m*g*l)*s/q-b*m*g*l/q);
+
+<span class="comment">%Visulalising the Transfer Function</span>
+sys_tf=[P_cart;P_pend];
+inputs={<span class="string">'u'</span>};
+outputs={<span class="string">'x'</span>;<span class="string">'phi'</span>};
+set(sys_tf,<span class="string">'InputName'</span>,inputs);
+set(sys_tf,<span class="string">'OutputName'</span>,outputs);
+disp(<span class="string">"The complete TF Equation is : "</span>);
+sys_tf
+</pre><h2 id="4">Task 1.2: State Space Model</h2><pre class="codeinput">p=I*(M+m)+M*m*l^2; <span class="comment">%Creating a 'p' variable to replace all denominators in State Matrix.</span>
+
+<span class="comment">%State Equation</span>
+A=[0 1 0 0;0 -((I+m*l^2)*b)/p (m^2*g*l^2)/p 0;0 0 0 1;0 -(m*l*b)/p (m*g*l*(M+m))/p 0]; <span class="comment">%State Equation</span>
+B=[0;(I+m*l^2)/p;0;(m*l)/p]; <span class="comment">%Input Equation</span>
+
+<span class="comment">%Output Equation</span>
+C=[1 0 0 0;0 0 1 0];
+D=[0;0];
+
+states = {<span class="string">'x'</span> <span class="string">'x_dot'</span> <span class="string">'phi'</span> <span class="string">'phi_dot'</span>}; <span class="comment">%Where, x = Position</span>
+                                        <span class="comment">%       x_dot = velocity</span>
+                                        <span class="comment">%       phi = Angle of Pendulum</span>
+                                        <span class="comment">%       phi_dot = derivative of phi</span>
+
+<span class="comment">% Visualising the State Space Equations</span>
+inputs = {<span class="string">'u'</span>};
+outputs = {<span class="string">'x'</span>; <span class="string">'phi'</span>};
+sys_ss = ss(A,B,C,D,<span class="string">'statename'</span>, states,<span class="string">'InputName'</span>, inputs,<span class="string">'OutputName'</span>, outputs);
+disp(<span class="string">"The state space model is:"</span>)
+sys_ss
+</pre><h2 id="5">Task 2: Open Loop Impulse Response and Step Response of the System</h2><pre class="codeinput">t=0:0.01:1; <span class="comment">%Specifying Time steps</span>
+
+disp(<span class="string">"Plotting the responses"</span>)
+<span class="comment">%Impulse Response</span>
+figure(<span class="string">'Name'</span>,<span class="string">'Open Loop Response of Inverted Pendulum'</span>);
+subplot(2,1,1);
+impulse(sys_tf,t)
+<span class="comment">%Step Response</span>
+subplot(2,1,2);
+step(sys_tf,t)
+
+<span class="comment">%{ Inference : From the graphs shown we can clearly understand that the system is not stable. Hence we go for a Closed Loop PID control. %}</span>
+</pre><h2 id="6">Task 3: PID Controller Design</h2><pre class="codeinput"><span class="comment">%Initialise the Parameters.</span>
+disp(<span class="string">"Implementing the PID Controller"</span>)
+kp = str2double(inputdlg(<span class="string">'Enter the Proportional Constant Value:'</span>));
+ki = str2double(inputdlg(<span class="string">'Enter the Integral Constant Values:'</span>));
+kd = str2double(inputdlg(<span class="string">'Enter the Derivative Constant Value:'</span>));
+
+<span class="comment">%Visualise the PID Controller.</span>
+cntr = pid(kp,ki,kd)
+
+<span class="comment">%Checking the stability of the system with given PID control Parametrs.</span>
+clsys= feedback(P_pend,cntr)
+
+figure(<span class="string">'Name'</span>,<span class="string">'Response after Implementing PID Control'</span>);
+impulse(clsys)
+
+<span class="comment">%{Inference : We can say that the system (now closed loop) after the implementation of a PID controller is stable. %}</span>
+disp(<span class="string">"End"</span>)
+publish(<span class="string">'D:\College &amp; Language Files\Academics\4th Year\Lab1 - Mechatronics Lab\Ex1\Ex1_MathematicalModelling.m'</span>,<span class="string">'evalCode'</span>,false);
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Mechatronics Lab - Exercise 1 : Mathematical Modelling of a Pendulum over a Cart
+%% Creating the Modelling Parameters 
+M = 0.5; %Mass of the Cart
+m = 0.2; %Mass o fthe Pendulum
+b = 0.1; %Damping Coef
+g = 9.8; %Gravity
+I = 0.006; %Inertia
+l = 0.3; %Length of Pendulum
+disp("Created the Modelling Parameters")
+%% Task 1: Deriving the Transfer Function and State Space model and representing in MATLAB
+%% Task 1.1: Transfer Functions Model
+s = tf('s'); %Creating the 's' variable required in a transfer function
+q = (M+m)*(I+m*l^2)-(m*l)^2; %Creating a 'q' variable for easy calculations
+
+%Delcaring the Transfer Functions of the Inverted Pendulum System
+
+%Transfer Function of the Cart
+P_cart = (((I+m*l^2)/q)*s^2-(m*g*l/q))/(s^4+(b*(I+m*l^2))*s^3/q-((M+m)*m*g*l)*s^2/q-b*m*q*l*s/q); 
+
+%Transfer function of the Pendulum
+P_pend = (m*l*s/q)/(s^3 + (b*(I+m*l^2))*s^2/q -((M+m)*m*g*l)*s/q-b*m*g*l/q);
+
+%Visulalising the Transfer Function
+sys_tf=[P_cart;P_pend];
+inputs={'u'};
+outputs={'x';'phi'};
+set(sys_tf,'InputName',inputs);
+set(sys_tf,'OutputName',outputs);
+disp("The complete TF Equation is : ");
+sys_tf
+
+%% Task 1.2: State Space Model
+p=I*(M+m)+M*m*l^2; %Creating a 'p' variable to replace all denominators in State Matrix.
+
+%State Equation
+A=[0 1 0 0;0 -((I+m*l^2)*b)/p (m^2*g*l^2)/p 0;0 0 0 1;0 -(m*l*b)/p (m*g*l*(M+m))/p 0]; %State Equation
+B=[0;(I+m*l^2)/p;0;(m*l)/p]; %Input Equation
+
+%Output Equation
+C=[1 0 0 0;0 0 1 0];
+D=[0;0];
+
+states = {'x' 'x_dot' 'phi' 'phi_dot'}; %Where, x = Position
+                                        %       x_dot = velocity
+                                        %       phi = Angle of Pendulum
+                                        %       phi_dot = derivative of phi
+
+% Visualising the State Space Equations                                        
+inputs = {'u'};
+outputs = {'x'; 'phi'};
+sys_ss = ss(A,B,C,D,'statename', states,'InputName', inputs,'OutputName', outputs);
+disp("The state space model is:")
+sys_ss
+%% Task 2: Open Loop Impulse Response and Step Response of the System
+t=0:0.01:1; %Specifying Time steps
+
+disp("Plotting the responses")
+%Impulse Response
+figure('Name','Open Loop Response of Inverted Pendulum');
+subplot(2,1,1);
+impulse(sys_tf,t)
+%Step Response
+subplot(2,1,2);
+step(sys_tf,t)
+
+%{ Inference : From the graphs shown we can clearly understand that the system is not stable. Hence we go for a Closed Loop PID control. %}
+
+%% Task 3: PID Controller Design
+%Initialise the Parameters.
+disp("Implementing the PID Controller")
+kp = str2double(inputdlg('Enter the Proportional Constant Value:'));
+ki = str2double(inputdlg('Enter the Integral Constant Values:'));
+kd = str2double(inputdlg('Enter the Derivative Constant Value:'));
+
+%Visualise the PID Controller.
+cntr = pid(kp,ki,kd)
+
+%Checking the stability of the system with given PID control Parametrs.
+clsys= feedback(P_pend,cntr)
+
+figure('Name','Response after Implementing PID Control');
+impulse(clsys)
+
+%{Inference : We can say that the system (now closed loop) after the implementation of a PID controller is stable. %}
+disp("End")
+publish('D:\College & Language Files\Academics\4th Year\Lab1 - Mechatronics Lab\Ex1\Ex1_MathematicalModelling.m','evalCode',false);
+
+##### SOURCE END #####
+--></body></html>
